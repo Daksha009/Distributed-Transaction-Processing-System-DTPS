@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dtps-config
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  AWS_REGION: "us-east-1"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dtps-service-account
+  annotations:
+    # Placeholder for IAM Role ARN (IRSA)
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/DtpsServiceRole"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dtps-deployment
+  labels:
+    app: dtps
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dtps
+  template:
+    metadata:
+      labels:
+        app: dtps
+    spec:
+      serviceAccountName: dtps-service-account
+      containers:
+      - name: dtps-container
+        image: dtps-service:latest # Replace with actual registry URL
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: dtps-config
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        # Liveness Probe: 重starts pod if app deadlocks or crashes
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        # Readiness Probe: Removes pod from service usage if not ready (e.g. DB connecting)
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dtps-service
+spec:
+  type: LoadBalancer # Or ClusterIP if using Ingress
+  selector:
+    app: dtps
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dtps-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dtps-deployment
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

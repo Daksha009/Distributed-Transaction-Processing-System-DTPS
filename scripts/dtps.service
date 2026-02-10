@@ -1,0 +1,29 @@
+[Unit]
+Description=DTPS - Distributed Transaction Processing System Service
+After=network.target syslog.target
+
+[Service]
+# Security: Run as non-privileged user
+User=dtps-user
+Group=dtps-user
+
+# Path to the executable jar
+ExecStart=/usr/bin/java -jar /opt/dtps/dtps-service.jar
+
+# Working Directory
+WorkingDirectory=/opt/dtps
+
+# Restart policy: Always restart on failure
+Restart=always
+RestartSec=10
+
+# Security Hardening for Systemd
+# Prevent access to /home, /root, and /run/user
+ProtectHome=yes
+# Make /usr, /boot, /etc read-only
+ProtectSystem=full
+# Create a private /tmp for this service
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
