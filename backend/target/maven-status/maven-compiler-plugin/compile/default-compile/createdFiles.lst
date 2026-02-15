@@ -1,0 +1,8 @@
+com\example\dtps\model\Transaction.class
+com\example\dtps\repository\TransactionRepository.class
+com\example\dtps\DtpsApplication.class
+com\example\dtps\service\StorageService.class
+com\example\dtps\service\TransactionService.class
+com\example\dtps\config\AwsConfig.class
+com\example\dtps\service\S3StorageService.class
+com\example\dtps\controller\TransactionController.class

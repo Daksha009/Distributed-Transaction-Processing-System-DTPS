@@ -16,12 +16,11 @@ sudo apt-get update && sudo apt-get upgrade -y
 echo "Installing dependencies..."
 sudo apt-get install -y curl wget unzip gnupg lsb-release ca-certificates
 
-# 3. Install OpenJDK 24 (Early Access) or 21 (LTS) if 24 is unstable
-# Using JDK 21 LTS as the stable base for Virtual Threads, but allowing upgrade.
-# For this script, we'll install OpenJDK 21 which is standard and supports Virtual Threads.
-# If strictly JDK 24 is needed, replace with EA download link.
-echo "Installing OpenJDK 21 (LTS)..."
-sudo apt-get install -y openjdk-21-jdk
+# 3. Install OpenJDK 24
+echo "Installing OpenJDK 24..."
+sudo add-apt-repository ppa:openjdk-r/ppa -y
+sudo apt-get update
+sudo apt-get install -y openjdk-24-jdk
 
 # Verify Java version
 java -version

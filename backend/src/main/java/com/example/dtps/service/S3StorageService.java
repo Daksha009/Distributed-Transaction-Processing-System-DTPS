@@ -17,12 +17,6 @@ public class S3StorageService implements StorageService {
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public S3StorageService() {
-        // In a real scenario, S3Client should be a Bean configured with credentials
-        // Assuming DefaultCredentialsProvider is sufficient for IAM Role auth
-        this.s3Client = S3Client.create();
-    }
-    
     // Allow injection for testing
     public S3StorageService(S3Client s3Client) {
         this.s3Client = s3Client;
@@ -45,11 +39,11 @@ public class S3StorageService implements StorageService {
                     .build();
 
             s3Client.putObject(putOb, RequestBody.fromString(content, StandardCharsets.UTF_8));
-            
+
             // Return S3 URL
             return "s3://" + bucketName + "/" + key;
         } catch (Exception e) {
-            // Log error but don't fail transaction if storage is optional, 
+            // Log error but don't fail transaction if storage is optional,
             // or rethrow to trigger circuit breaker if critical.
             // For this assignment, we'll log and return a fallback string.
             System.err.println("S3 Upload Failed: " + e.getMessage());

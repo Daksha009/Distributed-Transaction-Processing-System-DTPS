@@ -18,7 +18,8 @@ public class TransactionController {
     }
 
     @PostMapping("/tx")
-    public ResponseEntity<Transaction> processTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> processTransaction(
+            @jakarta.validation.Valid @RequestBody Transaction transaction) {
         Transaction savedTransaction = transactionService.processTransaction(transaction);
         return ResponseEntity.ok(savedTransaction);
     }

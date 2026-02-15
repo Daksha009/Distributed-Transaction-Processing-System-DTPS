@@ -27,9 +27,9 @@ public class TransactionService {
         if (tx.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
-        
+
         tx.setTimestamp(LocalDateTime.now());
-        
+
         // Save first to generate ID (if IDENTITY strategy used, depends on DB)
         // If we want ID in receipt, we might need to save first.
         Transaction savedTx = repository.save(tx);
@@ -45,14 +45,23 @@ public class TransactionService {
         // Fallback logic when circuit is open or DB fails
         System.err.println("Fallback triggered due to: " + t.getMessage());
         tx.setReceiptUrl("FAILED_TO_PROCESS_CIRCUIT_OPEN");
-        return tx; 
+        return tx;
     }
 
     public Map<String, Object> getSystemMetrics() {
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("jvm.memory.free", Runtime.getRuntime().freeMemory());
         metrics.put("jvm.memory.total", Runtime.getRuntime().totalMemory());
-        metrics.put("db.connection.status", "UP"); // Simplified check
+        metrics.put("db.connection.status", checkDatabaseStatus());
         return metrics;
+    }
+
+    private String checkDatabaseStatus() {
+        try {
+            repository.count(); // Simple query to check connectivity
+            return "UP";
+        } catch (Exception e) {
+            return "DOWN (" + e.getMessage() + ")";
+        }
     }
 }
